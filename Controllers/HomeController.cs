@@ -23,10 +23,6 @@ namespace Rainy.Controllers
 			var list = client.Start(GetCurrentTimeAtJapan() - new TimeSpan(1, 15, 0), GetCurrentTimeAtJapan());
 			DownloadClient.RequestItem i = list[list.Count - 1];
 
-			string dir = HttpContext.Server.MapPath("~/App_Data/tmp/");
-			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-			System.IO.File.Copy(i.Path, Path.Combine(dir, "last.gif"), true);
-
 			string pathNeuro = GetNeuroPath();
 			LearningManager m = new LearningManager();
 			if (System.IO.File.Exists(pathNeuro)) m.Load(pathNeuro);
@@ -42,15 +38,40 @@ namespace Rainy.Controllers
 			return View();
 		}
 
+		public ActionResult Learn(string id)
+		{
+			DateTime now = GetCurrentTimeAtJapan();
+			TryPraseTime(id, ref now);
+
+			string dirRaw = HttpContext.Server.MapPath("~/App_Data/raw/");
+			DownloadClient client = new DownloadClient(dirRaw);
+			var list = client.SearchLocal(now - new TimeSpan(0, 10, 0), now + new TimeSpan(0, 5, 0));
+
+			string pathNeuro = GetNeuroPath();
+			LearningManager m = new LearningManager();
+			if (!System.IO.File.Exists(pathNeuro)) return View("Error");
+
+			m.Load(pathNeuro);
+			List<RainImage> images = new List<RainImage>();
+			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Quater());
+			if (images.Count < 4) return View("Error");
+			m.Learn(images.ToArray());
+			m.Save(pathNeuro);
+			var forecasted = m.Forecast(images.Take(LearningManager.HistoryLimit).ToArray());
+
+			string path05 = GetForecast5Path(now, ".detail.png");
+			forecasted.SavePngDetail(path05);
+
+			DumpImage(path05);
+			return View();
+		}
+
 		public ActionResult ForecastImage5(string id)
 		{
 			DateTime correctNow = GetCurrentTimeAtJapan();
 			TryPraseTime(id, ref correctNow);
 			DateTime roughNow = new DateTime(correctNow.Year, correctNow.Month, correctNow.Day, correctNow.Hour, (correctNow.Minute / 5) * 5, 0);
-			DateTime future5 = roughNow + new TimeSpan(0, 5, 0);
-			string dirCast = HttpContext.Server.MapPath("~/App_Data/forecast/");
-			string future05name = roughNow.ToString("yyyyMM/dd/HHmm") + "-05.png";
-			string path05 = Path.Combine(dirCast, future05name);
+			string path05 = GetForecast5Path(roughNow);
 			string dir = Path.GetDirectoryName(path05);
 			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
@@ -69,10 +90,6 @@ namespace Rainy.Controllers
 
 				RainImage forecasted5 = m.Forecast(images.ToArray());
 				forecasted5.SavePng(path05);
-
-//				string dirTmp = HttpContext.Server.MapPath("~/App_Data/tmp/");
-//				string pathDetail = Path.Combine(dirTmp, "detail5.png");
-//				forecasted5.SavePngDetail(pathDetail);
 			}
 			DumpImage(path05);
 			return View();
@@ -126,10 +143,23 @@ namespace Rainy.Controllers
 			return true;
 		}
 
+		private string GetForecast5Path(DateTime t, string ext = ".png")
+		{
+			string dirCast = HttpContext.Server.MapPath("~/App_Data/forecast/");
+			string future05name = t.ToString("yyyyMM/dd/HHmm") + "-05" + ext;
+			return Path.Combine(dirCast, future05name);
+		}
+
 		private string GetNeuroPath()
 		{
 			string dirLearn = HttpContext.Server.MapPath("~/App_Data/learn/");
 			return Path.Combine(dirLearn, "neuro.bin");
+		}
+
+		private string GetTmpPath(string filename)
+		{
+			string dir = HttpContext.Server.MapPath("~/App_Data/tmp/");
+			return Path.Combine(dir, filename);
 		}
 
 		private DateTime GetCurrentTimeAtJapan(int min = 0)

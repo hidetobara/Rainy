@@ -66,6 +66,20 @@ namespace Rainy
 			thread.Start(items);
 		}
 
+		public List<RequestItem> SearchLocal(DateTime start, DateTime end)
+		{
+			int min = (start.Minute / 5) * 5;
+			start = new DateTime(start.Year, start.Month, start.Day, start.Hour, min, 0);
+			List<RequestItem> items = new List<RequestItem>();
+			for (DateTime t = start; t <= end; t += new TimeSpan(0, 5, 0))
+			{
+				string path = LocalPath(t);
+				if(!File.Exists(path)) continue;
+				items.Add(new RequestItem() { Path = path });
+			}
+			return items;
+		}
+
 		private void Request(Object o)
 		{
 			List<RequestItem> items = null;

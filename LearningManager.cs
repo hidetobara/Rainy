@@ -16,7 +16,7 @@ namespace Rainy
 		const int Width = 192;
 		const int Height = 120;
 		public int Area { get { return Width * Height; } }
-		const int HistoryLimit = 3;
+		public const int HistoryLimit = 3;
 		const int MiddleCount = 64;
 
 		DeepBeliefNetwork _Network;
@@ -45,7 +45,7 @@ namespace Rainy
 		{
 			List<double[]> inputs = new List<double[]>();
 			List<double[]> outputs = new List<double[]>();
-			for(int i = 0; i < images.Length - HistoryLimit - 1; i++)
+			for(int i = 0; i < images.Length - HistoryLimit; i++)
 			{
 				double amount = 0;
 				for (int h = 0; h < HistoryLimit; h++) amount += images[i + h].GetAmount();
@@ -54,7 +54,7 @@ namespace Rainy
 				double[] input = new double[Area * HistoryLimit];
 				for (int h = 0; h < HistoryLimit; h++) Array.Copy(images[i + h].Data, 0, input, Area * h, Area);
 				inputs.Add(input);
-				outputs.Add(images[i + HistoryLimit + 1].Data);
+				outputs.Add(images[i + HistoryLimit].Data);
 			}
 			_Teacher.RunEpoch(inputs.ToArray(), outputs.ToArray());
 			_Network.UpdateVisibleWeights();

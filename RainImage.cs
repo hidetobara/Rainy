@@ -5,6 +5,7 @@ using System.Web;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Collections;
+using System.IO;
 
 
 namespace Rainy
@@ -137,6 +138,8 @@ namespace Rainy
 				}
 			}
 			b.UnlockBits(d);
+			string dir = Path.GetDirectoryName(path);
+			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 			b.Save(path, ImageFormat.Png);
 		}
 
@@ -158,6 +161,8 @@ namespace Rainy
 				}
 			}
 			b.UnlockBits(d);
+			string dir = Path.GetDirectoryName(path);
+			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 			b.Save(path, ImageFormat.Png);
 		}
 
