@@ -1,0 +1,19 @@
+﻿@{
+    ViewBag.Title = "未来降雨";
+}
+
+<div class="row">
+    <div class="col-md-2">
+        <p style="position: absolute; top: 0px; left: 0px;">現在 @ViewBag.Now</p>
+        <p style="position: absolute; top: 500px; left: 0px;">5分後</p>
+    </div>
+    <div class="col-md-10">
+        <img style="position: absolute; top: 0px; left: 0px;" src="Home/BaseImage/map" />
+        <img style="position: absolute; top: 0px; left: 0px;" src="Home/PassedImage" />
+        <img style="position: absolute; top: 0px; left: 0px;" src="Home/BaseImage/mask" />
+
+        <img style="position: absolute; top: 500px; left: 0px;" src="Home/BaseImage/map" />
+        <img style="position: absolute; top: 500px; left: 0px;" src="Home/ForecastImage5" width="768" height="480" />
+        <img style="position: absolute; top: 500px; left: 0px;" src="Home/BaseImage/mask" />
+    </div>
+</div>
