@@ -20,8 +20,8 @@ namespace Rainy.Controllers
 		{
 			string dirRaw = HttpContext.Server.MapPath("~/App_Data/raw/");
 			DownloadClient client = new DownloadClient(dirRaw);
-			var list = client.Start(GetCurrentTimeAtJapan() - new TimeSpan(1, 15, 0), GetCurrentTimeAtJapan());
-			DownloadClient.RequestItem i = list[list.Count - 1];
+			DateTime now = GetCurrentTimeAtJapan();
+			var list = client.Start(now - new TimeSpan(1, 15, 0), now);
 
 			string pathNeuro = GetNeuroPath();
 			LearningManager m = new LearningManager();
@@ -35,6 +35,7 @@ namespace Rainy.Controllers
 			string[] files = Directory.GetFiles(dirRaw, "*.gif", SearchOption.AllDirectories);
 			ViewBag.Message = "Files=" + files.Length + Environment.NewLine;
 
+			client.StartAsync(now - new TimeSpan(3, 0, 0), now - new TimeSpan(1, 0, 0));	// 念のため
 			return View();
 		}
 
