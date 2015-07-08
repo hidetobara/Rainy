@@ -10,12 +10,20 @@ namespace Rainy.Controllers
 {
 	public class HomeController : Controller
 	{
+		// トップ画面、現在の雨
 		public ActionResult Index()
 		{
 			ViewBag.Now = GetCurrentTimeAtJapan().ToString();
 			return View();
 		}
 
+		// 5分後の雨
+		public ActionResult Forecast5()
+		{
+			return View();
+		}
+
+		// 定期的に画像をクロール＆学習
 		public ActionResult Crawl()
 		{
 			string dirRaw = HttpContext.Server.MapPath("~/App_Data/raw/");
@@ -39,6 +47,7 @@ namespace Rainy.Controllers
 			return View();
 		}
 
+		// 特定の時間を学習させる
 		public ActionResult Learn(string id)
 		{
 			DateTime now = GetCurrentTimeAtJapan();
@@ -105,7 +114,7 @@ namespace Rainy.Controllers
 			DownloadClient client = new DownloadClient(dirRaw);
 			var item = client.Start(now);
 
-			DumpImage(item.Path);
+			DumpImage(item.Path, true);
 			return View();
 		}
 
@@ -114,15 +123,16 @@ namespace Rainy.Controllers
 			string dir = HttpContext.Server.MapPath("~/App_Data/Base/");
 			string path = Path.Combine(dir, id + ".png");
 
-			DumpImage(path);
+			DumpImage(path, true);
 			return View();
 		}
 
-		private void DumpImage(string path)
+		private void DumpImage(string path, bool cache = false)
 		{
 			if (System.IO.File.Exists(path))
 			{
 				Response.ContentType = "image/" + Path.GetExtension(path).Trim('.');
+				if (cache) Response.CacheControl = "public";
 				Response.Flush();
 				Response.WriteFile(path);
 				Response.End();
@@ -163,9 +173,9 @@ namespace Rainy.Controllers
 			return Path.Combine(dir, filename);
 		}
 
-		private DateTime GetCurrentTimeAtJapan(int min = 0)
+		private DateTime GetCurrentTimeAtJapan()
 		{
-			return DateTime.UtcNow + new TimeSpan(9, min, 0);
+			return DateTime.UtcNow + new TimeSpan(8, 59, 0);
 		}
 	}
 }
