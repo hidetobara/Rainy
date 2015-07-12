@@ -49,7 +49,7 @@ namespace Rainy
 			{
 				double amount = 0;
 				for (int h = 0; h < HistoryLimit; h++) amount += images[i + h].GetAmount();
-				if (amount == 0) continue;	// 何も降ってない時は無視
+				if (amount < 30) continue;	// 何も降ってない時は無視
 
 				double[] input = new double[Area * HistoryLimit];
 				for (int h = 0; h < HistoryLimit; h++) Array.Copy(images[i + h].Data, 0, input, Area * h, Area);

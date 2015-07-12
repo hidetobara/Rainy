@@ -68,6 +68,8 @@ namespace Rainy
 
 		unsafe public static RainImage FromFile(string path)
 		{
+			if (!File.Exists(path)) return null;
+
 			Bitmap src = new Bitmap(path);
 			BitmapData srcData = src.LockBits(new Rectangle(Point.Empty, src.Size), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
