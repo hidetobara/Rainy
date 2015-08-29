@@ -5,6 +5,10 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rainy", "Rainy.csproj", "{B849B21F-8C9E-4AFA-A088-7826572B5EE1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainyLibrary", "RainyLibrary\RainyLibrary.csproj", "{0CAD1C3B-8F43-4C26-870E-61672F0C596A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RainyDesktop", "RainyDesktop\RainyDesktop.csproj", "{401E31BB-F070-49A4-88BC-4D9BC4C1A3F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B849B21F-8C9E-4AFA-A088-7826572B5EE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B849B21F-8C9E-4AFA-A088-7826572B5EE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B849B21F-8C9E-4AFA-A088-7826572B5EE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CAD1C3B-8F43-4C26-870E-61672F0C596A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CAD1C3B-8F43-4C26-870E-61672F0C596A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CAD1C3B-8F43-4C26-870E-61672F0C596A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CAD1C3B-8F43-4C26-870E-61672F0C596A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401E31BB-F070-49A4-88BC-4D9BC4C1A3F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401E31BB-F070-49A4-88BC-4D9BC4C1A3F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401E31BB-F070-49A4-88BC-4D9BC4C1A3F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401E31BB-F070-49A4-88BC-4D9BC4C1A3F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

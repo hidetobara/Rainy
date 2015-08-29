@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.IO;
 
 using Accord.Neuro;
 using Accord.Neuro.Learning;
@@ -9,7 +10,7 @@ using AForge.Neuro.Learning;
 using Accord.Neuro.Networks;
 
 
-namespace Rainy
+namespace RainyLibrary
 {
 	public class LearningManager
 	{
@@ -17,7 +18,7 @@ namespace Rainy
 		const int Height = 30;	// 480/16
 		public int Area { get { return Width * Height; } }
 		public const int HistoryLimit = 3;
-		const int MiddleCount = 64;
+		const int MiddleCount = 32;
 
 		DeepBeliefNetwork _Network;
 		BackPropagationLearning _Teacher;
@@ -29,10 +30,12 @@ namespace Rainy
 			_Network.UpdateVisibleWeights();
 			_Teacher = new BackPropagationLearning(_Network);
 		}
-		public void Load(string path)
+		public bool Load(string path)
 		{
+			if (!File.Exists(path)) return false;
 			_Network = DeepBeliefNetwork.Load(path);
 			_Teacher = new BackPropagationLearning(_Network);
+			return true;
 		}
 		public void Save(string path)
 		{

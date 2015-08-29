@@ -8,7 +8,7 @@ using System.Collections;
 using System.IO;
 
 
-namespace Rainy
+namespace RainyLibrary
 {
 	public class RainImage
 	{
@@ -128,6 +128,21 @@ namespace Rainy
 			return amount / list.Count;
 		}
 
+		public void Add(RainImage image)
+		{
+			for (int i = 0; i < Width * Height; i++) this.Data[i] += image.Data[i];
+		}
+		public void Subtract(RainImage image)
+		{
+			for (int i = 0; i < Width * Height; i++) this.Data[i] -= image.Data[i];
+		}
+		public RainImage Scale(double value)
+		{
+			RainImage image = new RainImage(Height, Width);
+			for (int i = 0; i < Width * Height; i++) this.Data[i] *= value;
+			return image;
+		}
+
 		unsafe public void SavePng(string path)
 		{
 			Bitmap b = new Bitmap(this.Width, this.Height, PixelFormat.Format32bppArgb);
@@ -159,10 +174,7 @@ namespace Rainy
 				for (int w = 0; w < d.Width; w++, p += 4)
 				{
 					double v = this.Data[this.Width * h + w];
-					if (v < 0) v = 0;
-					if (v > 1) v = 1;
-					byte vb = (byte)(255.0 * v);
-					p[0] = vb; p[1] = vb; p[2] = vb;
+					p[0] = ConvertStep(v, 0, 0.1); p[1] = ConvertStep(v, 0, 0.25); p[2] = ConvertStep(v, 0, 1);
 					p[3] = (byte)((v == 0) ? 0 : 255);
 				}
 			}
@@ -170,6 +182,14 @@ namespace Rainy
 			string dir = Path.GetDirectoryName(path);
 			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 			b.Save(path, ImageFormat.Png);
+		}
+
+		private byte ConvertStep(double v, double lower, double upper)
+		{
+			if (v <= lower) return 0;
+			if (v >= upper) return 255;
+			double theta = (v - lower) / (upper - lower);
+			return (byte)(255.0 * theta);
 		}
 
 		class ColorValue

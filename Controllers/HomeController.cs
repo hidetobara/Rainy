@@ -41,7 +41,7 @@ namespace Rainy.Controllers
 			if (System.IO.File.Exists(pathNeuro)) m.Load(pathNeuro);
 			else m.Initialize();
 			List<RainImage> images = new List<RainImage>();
-			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Quater());
+			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Shrink());
 			m.Learn(images.ToArray());
 			m.Save(pathNeuro);
 
@@ -64,7 +64,7 @@ namespace Rainy.Controllers
 
 			LearningManager m = GetLearningManager();
 			List<RainImage> images = new List<RainImage>();
-			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Quater());
+			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Shrink());
 			if (images.Count < 4) return View("Error");
 			m.Learn(images.ToArray());
 			m.Save(GetNeuroPath());
@@ -117,7 +117,7 @@ namespace Rainy.Controllers
 			{
 				RainImage i = RainImage.FromFile(path);
 				if (i == null) continue;
-				if (path.EndsWith(".gif")) i = i.Quater();
+				if (path.EndsWith(".gif")) i = i.Shrink();
 				images.Add(i);
 			}
 			if (images.Count < LearningManager.HistoryLimit) return null;
