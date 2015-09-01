@@ -14,6 +14,7 @@ namespace RainyLibrary
 	{
 		public double[] Data;
 		public int Width, Height;
+		public int Area { get { return Width * Height; } }
 
 		public RainImage(int height, int width)
 		{
@@ -136,6 +137,12 @@ namespace RainyLibrary
 		{
 			for (int i = 0; i < Width * Height; i++) this.Data[i] -= image.Data[i];
 		}
+		public static RainImage Subtract(RainImage a, RainImage b)
+		{
+			RainImage o = new RainImage(a.Height, a.Width);
+			for (int i = 0; i < a.Width * a.Height; i++) o.Data[i] = a.Data[i] - b.Data[i];
+			return o;
+		}
 		public RainImage Scale(double value)
 		{
 			RainImage image = new RainImage(Height, Width);
@@ -143,7 +150,7 @@ namespace RainyLibrary
 			return image;
 		}
 
-		unsafe public void SavePng(string path)
+		unsafe public void SavePng(string path, double scale = 1, double bias = 0)
 		{
 			Bitmap b = new Bitmap(this.Width, this.Height, PixelFormat.Format32bppArgb);
 			BitmapData d = b.LockBits(new Rectangle(Point.Empty, b.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
@@ -152,7 +159,7 @@ namespace RainyLibrary
 				byte* p = (byte*)d.Scan0 + d.Stride * h;
 				for(int w = 0; w < d.Width; w++, p += 4)
 				{
-					double v = this.Data[this.Width * h + w];
+					double v = this.Data[this.Width * h + w] * scale + bias;
 					if (v < 0) v = 0;
 					if (v > 1) v = 1;
 					Resign(v, p);
@@ -174,7 +181,7 @@ namespace RainyLibrary
 				for (int w = 0; w < d.Width; w++, p += 4)
 				{
 					double v = this.Data[this.Width * h + w];
-					p[0] = ConvertStep(v, 0, 0.1); p[1] = ConvertStep(v, 0, 0.25); p[2] = ConvertStep(v, 0, 1);
+					p[0] = ConvertStep(v, -0.1, 0.1); p[1] = ConvertStep(v, 0, 0.25); p[2] = ConvertStep(v, 0, 1);
 					p[3] = (byte)((v == 0) ? 0 : 255);
 				}
 			}

@@ -14,14 +14,25 @@ namespace RainyLibrary
 {
 	public class LearningManager
 	{
-		const int Width = 48;	// 770/16
-		const int Height = 30;	// 480/16
-		public int Area { get { return Width * Height; } }
-		public const int HistoryLimit = 3;
-		const int MiddleCount = 32;
+		private static LearningManager _Instance;
+		public static LearningManager Instance
+		{
+			get { if (_Instance == null) _Instance = new LearningManager(); return _Instance; }
+			set { if (_Instance == null) _Instance = value; }
+		}
+		protected LearningManager() { }
 
-		DeepBeliefNetwork _Network;
-		BackPropagationLearning _Teacher;
+		public const int Width = 48;	// 770/16
+		public const int Height = 30;	// 480/16
+		public int Area { get { return Width * Height; } }
+		public int HistoryLimit { get { return 3; } }
+		const int MiddleCount = 32;
+		const double IgnoreRate = 0.01;
+
+		protected DeepBeliefNetwork _Network;
+		protected BackPropagationLearning _Teacher;
+
+		public virtual string Filename { get { return "Learning.bin"; } }
 
 		public void Initialize()
 		{
@@ -44,7 +55,7 @@ namespace RainyLibrary
 			_Network.Save(path);
 		}
 
-		public void Learn(RainImage[] images)
+		public virtual void Learn(RainImage[] images, int iterate = 1)
 		{
 			List<double[]> inputs = new List<double[]>();
 			List<double[]> outputs = new List<double[]>();
@@ -52,18 +63,18 @@ namespace RainyLibrary
 			{
 				double amount = 0;
 				for (int h = 0; h < HistoryLimit; h++) amount += images[i + h].GetAmount();
-				if (amount < 30) continue;	// 何も降ってない時は無視
+				if (amount < images[0].Area * IgnoreRate) continue;	// 何も降ってない時は無視
 
 				double[] input = new double[Area * HistoryLimit];
 				for (int h = 0; h < HistoryLimit; h++) Array.Copy(images[i + h].Data, 0, input, Area * h, Area);
 				inputs.Add(input);
 				outputs.Add(images[i + HistoryLimit].Data);
 			}
-			_Teacher.RunEpoch(inputs.ToArray(), outputs.ToArray());
+			for (int i = 0; i < iterate; i++) _Teacher.RunEpoch(inputs.ToArray(), outputs.ToArray());
 			_Network.UpdateVisibleWeights();
 		}
 
-		public RainImage Forecast(RainImage[] images)
+		public virtual RainImage Forecast(RainImage[] images)
 		{
 			double[] input = new double[Area * HistoryLimit];
 			for (int h = 0; h < HistoryLimit; h++) Array.Copy(images[h].Data, 0, input, Area * h, Area);
