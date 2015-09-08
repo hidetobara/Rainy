@@ -113,7 +113,7 @@ namespace RainyLibrary
 					List<int> list = new List<int>();
 					for (int hh = hs; hh < hs + scale; hh++)
 						for (int ww = ws; ww < ws + scale; ww++) list.Add(this.Width * hh + ww);
-					i.Data[i.Width * h + w] = Average(list);
+					i.Data[i.Width * h + w] = Max(list);	// 平均よりは最大値の方がいいか？
 				}
 			}
 			return i;
@@ -125,8 +125,14 @@ namespace RainyLibrary
 		private double Average(List<int> list)
 		{
 			double amount = 0;
-			foreach (int i in list) amount += this.Data[i];
+			foreach (int i in list) amount += Data[i];
 			return amount / list.Count;
+		}
+		private double Max(List<int> list)
+		{
+			double max = 0;
+			foreach (int i in list) if (Data[i] > max) max = Data[i];
+			return max;
 		}
 
 		public void Add(RainImage image)

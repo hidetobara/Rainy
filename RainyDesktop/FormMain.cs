@@ -111,7 +111,7 @@ namespace RainyDesktop
 				if (task.Type == Task.TaskType.Learning)
 				{
 					const int Cut = 18;
-					const int Step = 20;
+					const int Step = 40;
 					List<RainFiles> list = new List<RainFiles>();
 					for (int i = 0; i < task.RainFiles.Count; i += Cut) list.Add(new RainFiles(task.RainFiles, i, Cut));
 					list = list.OrderBy(i => Guid.NewGuid()).ToList();
@@ -124,6 +124,7 @@ namespace RainyDesktop
 
 						_Learning.Learn(images.ToArray());
 						images.Clear();
+						GC.Collect();
 
 						Log.Instance.Info("Progress: " + l + " / " + list.Count);
 						BackgroundWorkerRain.ReportProgress(l * 100 / list.Count);
