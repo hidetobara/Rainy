@@ -16,12 +16,14 @@ namespace RainyDesktop
 {
 	public partial class FormMain : Form
 	{
+		const int SCALE = 16;
+
 		private LearningManager _Learning;
 
 		public FormMain()
 		{
 			InitializeComponent();
-//			LearningManager.Instance = new LearningManagerDerivation();
+			LearningManager.Instance = new LearningIPCA();
 		}
 
 		private void ButtonFolder_Click(object sender, EventArgs e)
@@ -55,7 +57,7 @@ namespace RainyDesktop
 			}
 			if(sender == ButtonRunPredict)
 			{
-				task.Type = Task.TaskType.Predict;
+				task.Type = Task.TaskType.Forecast;
 				task.RainFiles = GetTargets(TextBoxCurrentRain.Text);
  			}
 			Properties.Settings.Default.Save();
@@ -87,7 +89,7 @@ namespace RainyDesktop
 
 		class Task
 		{
-			public enum TaskType { None, Learning, Predict }
+			public enum TaskType { None, Learning, Forecast }
 			public TaskType Type = TaskType.None;
 			public string NeuralNetwork;
 			public List<string> RainFiles = new List<string>();
@@ -116,33 +118,37 @@ namespace RainyDesktop
 					for (int i = 0; i < task.RainFiles.Count; i += Cut) list.Add(new RainFiles(task.RainFiles, i, Cut));
 					list = list.OrderBy(i => Guid.NewGuid()).ToList();
 
-					List<RainImage> images = new List<RainImage>();
+					List<LearningImage> images = new List<LearningImage>();
 					for (int l = 0; l < list.Count; l++)
 					{
+						break;
 						images.AddRange(GetRainImages(list[l].Files, 0, list[l].Files.Count));
 						if ((l + 1) % Step != 0) continue;
 
-						_Learning.Learn(images.ToArray());
+						_Learning.Learn(images);
 						images.Clear();
 						GC.Collect();
 
 						Log.Instance.Info("Progress: " + l + " / " + list.Count);
 						BackgroundWorkerRain.ReportProgress(l * 100 / list.Count);
-#if DEBUG
+#if DEBUG && false
 						int limit = LearningManager.Instance.HistoryLimit;
 						int pair = task.OutputFiles.Count / limit;
 						if (pair > 0)
 						{
 							for (int p = 0; p < pair; p++)
-								_Learning.Forecast(GetRainImages(task.OutputFiles, p * limit, limit).ToArray()).SavePngDetail("../i" + l + "-p" + p + ".png");
+							{
+								RainImage rain = _Learning.Forecast(GetRainImages(task.OutputFiles, p * limit, limit)) as RainImage;
+								rain.SavePngDetail("../i" + l + "-p" + p + ".png");
+							}
 						}
 #endif
 					}
 					_Learning.Save(path);
 				}
-				if(task.Type == Task.TaskType.Predict)
+				if(task.Type == Task.TaskType.Forecast)
 				{
-					RainImage predicted = _Learning.Forecast(GetRainImages(task.RainFiles, 0, 3).ToArray());
+					RainImage predicted = _Learning.Forecast(GetRainImages(task.RainFiles, 0, 3)) as RainImage;
 					string filename = Path.GetFileNameWithoutExtension(task.RainFiles.Last());
 					string normal = Path.Combine(task.NeuralNetwork, "../forecast/" + filename + ".png");
 					string detail = Path.Combine(task.NeuralNetwork, "../forecast/" + filename + ".detail.png");
@@ -170,7 +176,7 @@ namespace RainyDesktop
 
 			Task task = e.Result as Task;
 			if (task == null) return;
-			if(task.Type == Task.TaskType.Predict)
+			if(task.Type == Task.TaskType.Forecast)
 			{
 				string saved = task.OutputFiles.First();
 				byte[] bytes = File.ReadAllBytes(saved);
@@ -186,13 +192,13 @@ namespace RainyDesktop
 			return files;
 		}
 
-		private List<RainImage> GetRainImages(List<string> files, int from, int count)
+		private List<LearningImage> GetRainImages(List<string> files, int from, int count)
 		{
-			List<RainImage> images = new List<RainImage>();
+			List<LearningImage> images = new List<LearningImage>();
 			for (int i = from; i < from + count; i++)
 			{
 				if (i >= files.Count) break;
-				images.Add(RainImage.FromFile(files[i]).Shrink());
+				images.Add(RainImage.LoadGif(files[i]).Shrink(SCALE));
 			}
 			return images;
 		}

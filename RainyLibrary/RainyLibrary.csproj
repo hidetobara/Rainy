@@ -42,9 +42,13 @@
     <Reference Include="Accord.Neuro">
       <HintPath>..\packages\Accord.Neuro.3.0.2\lib\net45\Accord.Neuro.dll</HintPath>
     </Reference>
+    <Reference Include="Accord.Statistics">
+      <HintPath>..\packages\Accord.Statistics.3.0.2\lib\net45\Accord.Statistics.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -52,9 +56,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LearningDBN.cs" />
+    <Compile Include="LearningImage.cs" />
+    <Compile Include="LearningIPCA.cs" />
     <Compile Include="LearningManager.cs" />
-    <Compile Include="LearningManagerDerivation.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="MiniJSON.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RainImage.cs" />
   </ItemGroup>

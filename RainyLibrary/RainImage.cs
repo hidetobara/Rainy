@@ -10,28 +10,9 @@ using System.IO;
 
 namespace RainyLibrary
 {
-	public class RainImage
+	public class RainImage : LearningImage
 	{
-		public double[] Data;
-		public int Width, Height;
-		public int Area { get { return Width * Height; } }
-
-		public RainImage(int height, int width)
-		{
-			this.Height = height;
-			this.Width = width;
-			Data = new double[height * width];
-		}
-		public RainImage(int height, int width, double[] bytes)
-			: this(height, width)
-		{
-			Array.Copy(bytes, Data, Math.Min(bytes.Length, this.Width * this.Height));
-		}
-
-		public double GetAmount()
-		{
-			return Data.Sum();
-		}
+		public RainImage(int height, int width, double[] data = null) : base(height, width, data) { }
 
 		private static List<ColorValue> _Table = new List<ColorValue>()
 		{
@@ -67,7 +48,7 @@ namespace RainyLibrary
 			return 0;
 		}
 
-		unsafe public static RainImage FromFile(string path)
+		unsafe public static RainImage LoadGif(string path)
 		{
 			if (!File.Exists(path)) return null;
 
@@ -87,76 +68,7 @@ namespace RainyLibrary
 			return i;
 		}
 
-		public RainImage Half()
-		{
-			RainImage i = new RainImage(this.Height / 2, this.Width / 2);
-			for (int h = 0; h < i.Height; h++)
-			{
-				int h2 = h * 2;
-				for(int w = 0; w < i.Width; w++)
-				{
-					int w2 = w * 2;
-					i.Data[i.Width * h + w] = Average(this.Width * h2 + w2, this.Width * h2 + w2 + 1, this.Width * (h2 + 1) + w2, this.Width * (h2 + 1) + w2 + 1);
-				}
-			}
-			return i;
-		}
-		public RainImage Shrink(int scale = 16)
-		{
-			RainImage i = new RainImage(this.Height / scale, this.Width / scale);
-			for (int h = 0; h < i.Height; h++)
-			{
-				int hs = h * scale;
-				for (int w = 0; w < i.Width; w++)
-				{
-					int ws = w * scale;
-					List<int> list = new List<int>();
-					for (int hh = hs; hh < hs + scale; hh++)
-						for (int ww = ws; ww < ws + scale; ww++) list.Add(this.Width * hh + ww);
-					i.Data[i.Width * h + w] = Max(list);	// 平均よりは最大値の方がいいか？
-				}
-			}
-			return i;
-		}
-		private double Average(params int[] list)
-		{
-			return Average(new List<int>(list));
-		}
-		private double Average(List<int> list)
-		{
-			double amount = 0;
-			foreach (int i in list) amount += Data[i];
-			return amount / list.Count;
-		}
-		private double Max(List<int> list)
-		{
-			double max = 0;
-			foreach (int i in list) if (Data[i] > max) max = Data[i];
-			return max;
-		}
-
-		public void Add(RainImage image)
-		{
-			for (int i = 0; i < Width * Height; i++) this.Data[i] += image.Data[i];
-		}
-		public void Subtract(RainImage image)
-		{
-			for (int i = 0; i < Width * Height; i++) this.Data[i] -= image.Data[i];
-		}
-		public static RainImage Subtract(RainImage a, RainImage b)
-		{
-			RainImage o = new RainImage(a.Height, a.Width);
-			for (int i = 0; i < a.Width * a.Height; i++) o.Data[i] = a.Data[i] - b.Data[i];
-			return o;
-		}
-		public RainImage Scale(double value)
-		{
-			RainImage image = new RainImage(Height, Width);
-			for (int i = 0; i < Width * Height; i++) this.Data[i] *= value;
-			return image;
-		}
-
-		unsafe public void SavePng(string path, double scale = 1, double bias = 0)
+		unsafe public override void SavePng(string path, double scale = 1, double bias = 0)
 		{
 			Bitmap b = new Bitmap(this.Width, this.Height, PixelFormat.Format32bppArgb);
 			BitmapData d = b.LockBits(new Rectangle(Point.Empty, b.Size), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
@@ -187,7 +99,7 @@ namespace RainyLibrary
 				for (int w = 0; w < d.Width; w++, p += 4)
 				{
 					double v = this.Data[this.Width * h + w];
-					p[0] = ConvertStep(v, -0.1, 0.1); p[1] = ConvertStep(v, 0, 0.25); p[2] = ConvertStep(v, 0, 1);
+					p[0] = Step(v, -0.1, 0.1); p[1] = Step(v, 0, 0.25); p[2] = Step(v, 0, 1);
 					p[3] = (byte)((v == 0) ? 0 : 255);
 				}
 			}
@@ -195,14 +107,6 @@ namespace RainyLibrary
 			string dir = Path.GetDirectoryName(path);
 			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 			b.Save(path, ImageFormat.Png);
-		}
-
-		private byte ConvertStep(double v, double lower, double upper)
-		{
-			if (v <= lower) return 0;
-			if (v >= upper) return 255;
-			double theta = (v - lower) / (upper - lower);
-			return (byte)(255.0 * theta);
 		}
 
 		class ColorValue
