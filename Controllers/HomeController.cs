@@ -4,12 +4,16 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.IO;
+using RainyLibrary;
 
 
 namespace Rainy.Controllers
 {
 	public class HomeController : Controller
 	{
+		const int SCALE = 16;
+		const double RAIN_BIAS = 0.025;
+
 		// トップ画面、現在の雨
 		public ActionResult Index()
 		{
@@ -36,13 +40,12 @@ namespace Rainy.Controllers
 			DateTime now = GetCurrentTimeAtJapan();
 			var list = client.Start(now - new TimeSpan(1, 15, 0), now);
 
-			string pathNeuro = GetNeuroPath();
-			LearningManager m = new LearningManager();
-			if (System.IO.File.Exists(pathNeuro)) m.Load(pathNeuro);
-			else m.Initialize();
-			List<RainImage> images = new List<RainImage>();
-			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Shrink());
-			m.Learn(images.ToArray());
+			LearningManager m = GetLearningManager();
+			string pathNeuro = GetNeuroPath(m.Filename);
+			if (!System.IO.File.Exists(pathNeuro)) m.Initialize();	// ファイルが無い時
+			List<LearningImage> images = new List<LearningImage>();
+			foreach (var item in list) images.Add(RainImage.LoadGif(item.Path).Shrink(SCALE));
+			m.Learn(images);
 			m.Save(pathNeuro);
 
 			string[] files = Directory.GetFiles(dirRaw, "*.gif", SearchOption.AllDirectories);
@@ -63,15 +66,15 @@ namespace Rainy.Controllers
 			var list = client.SearchLocal(now - new TimeSpan(0, 10, 0), now + new TimeSpan(0, 5, 0));
 
 			LearningManager m = GetLearningManager();
-			List<RainImage> images = new List<RainImage>();
-			foreach (var item in list) images.Add(RainImage.FromFile(item.Path).Shrink());
+			List<LearningImage> images = new List<LearningImage>();
+			foreach (var item in list) images.Add(RainImage.LoadGif(item.Path).Shrink(SCALE));
 			if (images.Count < 4) return View("Error");
-			m.Learn(images.ToArray());
-			m.Save(GetNeuroPath());
-			var forecasted = m.Forecast(images.Take(LearningManager.HistoryLimit).ToArray());
+			m.Learn(images);
+			m.Save(GetNeuroPath(m.Filename));
+			var forecasted = m.Forecast(images.Take(m.HistoryLimit).ToList());
 
 			string path05 = GetForecast5Path(now, ".detail.png");
-			forecasted.SavePngDetail(path05);
+			if (forecasted is RainImage) (forecasted as RainImage).SavePngDetail(path05);
 
 			DumpImage(path05);
 			return View();
@@ -112,20 +115,23 @@ namespace Rainy.Controllers
 
 		private RainImage Forecast(string forecasted, List<string> paths)
 		{
-			List<RainImage> images = new List<RainImage>();
+			List<LearningImage> images = new List<LearningImage>();
 			foreach(var path in paths)
 			{
-				RainImage i = RainImage.FromFile(path);
+				LearningImage i = RainImage.LoadGif(path);
 				if (i == null) continue;
-				if (path.EndsWith(".gif")) i = i.Shrink();
+				if (path.EndsWith(".gif")) i = i.Shrink(SCALE);
 				images.Add(i);
 			}
-			if (images.Count < LearningManager.HistoryLimit) return null;
-
 			LearningManager m = GetLearningManager();
-			RainImage image = m.Forecast(images.ToArray());
-			image.SavePng(forecasted);
-			return image;
+			if (images.Count < m.HistoryLimit) return null;
+
+			LearningImage image = m.Forecast(images);
+			image.SavePng(forecasted, 1, RAIN_BIAS);
+#if DEBUG
+			if (image is RainImage) (image as RainImage).SavePngDetail(forecasted + ".detail.png");
+#endif
+			return image as RainImage;
 		}
 		private RainImage Forecast(string forecasted, DateTime start, DateTime end)
 		{
@@ -208,10 +214,10 @@ namespace Rainy.Controllers
 			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 		}
 
-		private string GetNeuroPath()
+		private string GetNeuroPath(string filename)
 		{
 			string dirLearn = HttpContext.Server.MapPath("~/App_Data/learn/");
-			return Path.Combine(dirLearn, "neuro.bin");
+			return Path.Combine(dirLearn, filename);
 		}
 
 		private LearningManager _LearningManager = null;
@@ -219,10 +225,8 @@ namespace Rainy.Controllers
 		{
 			if (_LearningManager != null) return _LearningManager;
 
-			string pathNeuro = GetNeuroPath();
-			if (!System.IO.File.Exists(pathNeuro)) throw new Exception("NO neuro file !");
-			_LearningManager = new LearningManager();
-			_LearningManager.Load(pathNeuro);
+			_LearningManager = new LearningDBN();
+			_LearningManager.Load(GetNeuroPath(_LearningManager.Filename));
 			return _LearningManager;
 		}
 
@@ -234,7 +238,11 @@ namespace Rainy.Controllers
 
 		private DateTime GetCurrentTimeAtJapan()
 		{
+#if DEBUG
+			return new DateTime(2016, 3, 24, 9, 0, 0);
+#else
 			return DateTime.UtcNow + new TimeSpan(8, 59, 0);
+#endif
 		}
 	}
 }

@@ -23,7 +23,8 @@ namespace RainyDesktop
 		public FormMain()
 		{
 			InitializeComponent();
-			LearningManager.Instance = new LearningIPCA();
+			LearningManager.Instance = new LearningDBN();	// DBM
+			//LearningManager.Instance = new LearningIPCA();	// IPCA
 		}
 
 		private void ButtonFolder_Click(object sender, EventArgs e)
@@ -121,7 +122,6 @@ namespace RainyDesktop
 					List<LearningImage> images = new List<LearningImage>();
 					for (int l = 0; l < list.Count; l++)
 					{
-						break;
 						images.AddRange(GetRainImages(list[l].Files, 0, list[l].Files.Count));
 						if ((l + 1) % Step != 0) continue;
 

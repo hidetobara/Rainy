@@ -14,7 +14,7 @@ namespace RainyLibrary
 {
 	public class LearningDBN : LearningManager
 	{
-		protected LearningDBN() { }
+		public LearningDBN() { }
 
 		const int MiddleCount = 32;
 		const double IgnoreRate = 0.01;
