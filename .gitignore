@@ -4,6 +4,7 @@ App_Data/learn/
 App_Data/forecast/
 obj/
 bin/
+packages/
 
 *.user
 *.gif
