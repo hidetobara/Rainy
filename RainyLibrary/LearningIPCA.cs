@@ -21,13 +21,19 @@ namespace RainyLibrary
 			get { return 2.0 * (1 - Math.Exp(-_FrameNow / 32.0)); }	// 2.0fくらいが良い
 		}
 		const string FRAME_KEY = "frame";
+		const string STATE_FILENAME = "state.json";
 
 		LearningImage[] _MainImages;	// 主成分
 		LearningImage[] _TmpImages;		// 副成分
 
-		public override string Filename { get { return "IPCA/"; } }
+		protected override string Filename { get { return "IPCA/"; } }
 
 		long _FrameNow;
+
+		public override bool IsInitialized(string folder)
+		{
+			return File.Exists(Path.Combine(folder, Filename, STATE_FILENAME));
+		}
 
 		public override void Initialize()
 		{
@@ -41,10 +47,11 @@ namespace RainyLibrary
 			}
 		}
 
-		public override bool Load(string path)
+		public override bool Load(string folder)
 		{
 			Initialize();
 
+			string path = Path.Combine(folder, Filename);
 			if (!Directory.Exists(path)) return false;
 			for (int m = 0; m < MainMax; m++)
 			{
@@ -54,7 +61,7 @@ namespace RainyLibrary
 				if (_MainImages[m] == null || _TmpImages[m] == null) return false;
 			}
 
-			string context = File.ReadAllText(Path.Combine(path, "state.json"));
+			string context = File.ReadAllText(Path.Combine(path, STATE_FILENAME));
 			Hash hash = Json.Deserialize(context) as Hash;
 			if(hash != null)
 			{
@@ -63,8 +70,9 @@ namespace RainyLibrary
 			return true;
 		}
 
-		public override void Save(string path)
+		public override void Save(string folder)
 		{
+			string path = Path.Combine(folder, Filename);
 			for(int m = 0; m < MainMax; m++)
 			{
 				_MainImages[m].SaveBin(Path.Combine(path, "main" + m + ".bin"));
@@ -77,7 +85,7 @@ namespace RainyLibrary
 			Hash hash = new Hash();
 			hash[FRAME_KEY] = _FrameNow;
 			string context = Json.Serialize(hash);
-			File.WriteAllText(Path.Combine(path, "state.json"), context);
+			File.WriteAllText(Path.Combine(path, STATE_FILENAME), context);
 		}
 
 		public override void Learn(List<LearningImage> images, int iterate = 1)

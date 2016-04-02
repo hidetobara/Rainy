@@ -27,6 +27,11 @@ namespace RainyLibrary
 		}
 		public LearningImage(LearningImage image) : this(image.Height, image.Width, image.Data) { }
 
+		public virtual LearningImage Clone(int height, int width)
+		{
+			return new LearningImage(height, width);
+		}
+
 		public unsafe static LearningImage LoadPng(string path)
 		{
 			if (!File.Exists(path)) return null;
@@ -208,6 +213,39 @@ namespace RainyLibrary
 				if (reader != null) reader.Close();
 				reader = null;
 			}
+		}
+
+		public LearningImage Trim(int x, int y, int width, int height)
+		{
+			LearningImage o = this.Clone(height, width);
+			for (int yi = y; yi < this.Height && yi < y + height; yi++)
+			{
+				int pi = yi * this.Width + x;
+				int po = (yi - y) * o.Width;
+				int l = o.Width;
+				if (x + o.Width > this.Width) l = this.Width - x;
+				Array.Copy(this.Data, pi, o.Data, po, l * o.Plane);
+			}
+			return o;
+		}
+
+		public bool Paste(int x, int y, LearningImage image)
+		{
+			if (this.Plane != image.Plane) return false;
+
+			for (int yt = y; yt < this.Height && yt < y + image.Height; yt++)
+			{
+				for(int xt = x; xt < this.Width && xt < x + image.Width; xt++)
+				{
+					int pt = yt * this.Width + xt;
+					int pi = (yt - y) * image.Width + (xt - x);
+					for(int l = 0; l < this.Plane; l++)
+					{
+						if (image.Data[pi + l] > this.Data[pt + l]) this.Data[pt + l] = image.Data[pi + l];
+					}
+				}
+			}
+			return true;
 		}
 	}
 }

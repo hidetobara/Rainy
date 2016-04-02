@@ -12,7 +12,7 @@ namespace Rainy.Controllers
 	public class HomeController : Controller
 	{
 		const int SCALE = 16;
-		const double RAIN_BIAS = 0.025;
+		const double RAIN_BIAS = 0.0;
 
 		// トップ画面、現在の雨
 		public ActionResult Index()
@@ -41,8 +41,8 @@ namespace Rainy.Controllers
 			var list = client.Start(now - new TimeSpan(1, 15, 0), now);
 
 			LearningManager m = GetLearningManager();
-			string pathNeuro = GetNeuroPath(m.Filename);
-			if (!System.IO.File.Exists(pathNeuro)) m.Initialize();	// ファイルが無い時
+			string pathNeuro = GetNeuroPath();
+			if (!m.IsInitialized(pathNeuro)) m.Initialize();	// ファイルが無い時
 			List<LearningImage> images = new List<LearningImage>();
 			foreach (var item in list) images.Add(RainImage.LoadGif(item.Path).Shrink(SCALE));
 			m.Learn(images);
@@ -70,7 +70,7 @@ namespace Rainy.Controllers
 			foreach (var item in list) images.Add(RainImage.LoadGif(item.Path).Shrink(SCALE));
 			if (images.Count < 4) return View("Error");
 			m.Learn(images);
-			m.Save(GetNeuroPath(m.Filename));
+			m.Save(GetNeuroPath());
 			var forecasted = m.Forecast(images.Take(m.HistoryLimit).ToList());
 
 			string path05 = GetForecast5Path(now, ".detail.png");
@@ -214,10 +214,9 @@ namespace Rainy.Controllers
 			if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 		}
 
-		private string GetNeuroPath(string filename)
+		private string GetNeuroPath()
 		{
-			string dirLearn = HttpContext.Server.MapPath("~/App_Data/learn/");
-			return Path.Combine(dirLearn, filename);
+			return HttpContext.Server.MapPath("~/App_Data/learn/");
 		}
 
 		private LearningManager _LearningManager = null;
@@ -226,7 +225,7 @@ namespace Rainy.Controllers
 			if (_LearningManager != null) return _LearningManager;
 
 			_LearningManager = new LearningDBN();
-			_LearningManager.Load(GetNeuroPath(_LearningManager.Filename));
+			_LearningManager.Load(GetNeuroPath());
 			return _LearningManager;
 		}
 

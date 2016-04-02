@@ -14,6 +14,11 @@ namespace RainyLibrary
 	{
 		public RainImage(int height, int width, double[] data = null) : base(height, width, data) { }
 
+		public override LearningImage Clone(int height, int width)
+		{
+			return new RainImage(height, width);
+		}
+
 		private static List<ColorValue> _Table = new List<ColorValue>()
 		{
 			new ColorValue(0, 0, 0, 0),
@@ -38,6 +43,19 @@ namespace RainyLibrary
 				}
 			}
 			p[0] = 0; p[1] = 0; p[2] = 0; p[3] = 0;
+		}
+		unsafe private static void ResignBySlope(double v, byte* p)
+		{
+			p[0] = Slope(v, 0, 0.75, 127, 255);
+			p[1] = Slope(v, 0, 0.75, 127, 255);
+			p[2] = Slope(v, 0.25, 1, 0, 255);
+			p[3] = Slope(v, 0, 0.2, 0, 255);
+		}
+		private static byte Slope(double value, double inlow, double inhigh, byte outlow, byte outhigh)
+		{
+			if (value > inhigh) value = inhigh - (value - inhigh);
+			if (value < inlow) value = inlow;
+			return (byte)((value - inlow) * (outhigh - outlow) / (inhigh - inlow) + outlow);
 		}
 		unsafe private static double Parse(byte* p)
 		{
@@ -80,7 +98,7 @@ namespace RainyLibrary
 					double v = this.Data[this.Width * h + w] * scale + bias;
 					if (v < 0) v = 0;
 					if (v > 1) v = 1;
-					Resign(v, p);
+					ResignBySlope(v, p);
 				}
 			}
 			b.UnlockBits(d);

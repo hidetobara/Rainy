@@ -22,10 +22,11 @@ namespace RainyLibrary
 		public int Length { get { return Width * Height * Plane; } }
 		public int HistoryLimit = 3;
 
-		public virtual string Filename { get { return "Learning.bin"; } }
+		protected virtual string Filename { get { return "Learning.bin"; } }
+		public virtual bool IsInitialized(string folder) { return true; }
 		public virtual void Initialize() { }
-		public virtual bool Load(string path) { return false; }
-		public virtual void Save(string path) { }
+		public virtual bool Load(string folder) { return false; }
+		public virtual void Save(string folder) { }
 		public virtual void Learn(List<LearningImage> images, int iterate = 1) { }
 		public virtual LearningImage Forecast(List<LearningImage> images) { return null; }
 	}
