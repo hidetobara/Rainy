@@ -224,7 +224,7 @@ namespace Rainy.Controllers
 		{
 			if (_LearningManager != null) return _LearningManager;
 
-			_LearningManager = new LearningDBN();
+			_LearningManager = new LearningCDBN();
 			_LearningManager.Load(GetNeuroPath());
 			return _LearningManager;
 		}

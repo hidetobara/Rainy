@@ -44,19 +44,27 @@ namespace RainyLibrary
 			}
 			p[0] = 0; p[1] = 0; p[2] = 0; p[3] = 0;
 		}
+		// 黄色から赤に変更
 		unsafe private static void ResignBySlope(double v, byte* p)
 		{
-			p[0] = Slope(v, 0, 0.75, 127, 255);
-			p[1] = Slope(v, 0, 0.75, 127, 255);
-			p[2] = Slope(v, 0.25, 1, 0, 255);
-			p[3] = Slope(v, 0, 0.2, 0, 255);
+			p[0] = 0;
+			p[1] = (byte)(255 - Slope(v, 0, 1, 0, 255));
+			p[2] = 255;
+			p[3] = Slope(v, 0, 0.1, 0, 255);
 		}
 		private static byte Slope(double value, double inlow, double inhigh, byte outlow, byte outhigh)
 		{
-			if (value > inhigh) value = inhigh - (value - inhigh);
+			if (value > inhigh) value = inhigh;
 			if (value < inlow) value = inlow;
 			return (byte)((value - inlow) * (outhigh - outlow) / (inhigh - inlow) + outlow);
 		}
+		private static byte Mountain(double value, double peek, double distance, byte outlow, byte outhigh)
+		{
+			double diff = Math.Abs(value - peek);
+			if (diff > distance) diff = distance;
+			return (byte)((distance - diff) * (outhigh - outlow) / distance + outlow);
+		}
+
 		unsafe private static double Parse(byte* p)
 		{
 			foreach (var v in _Table)
