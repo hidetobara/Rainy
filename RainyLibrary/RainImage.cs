@@ -44,12 +44,12 @@ namespace RainyLibrary
 			}
 			p[0] = 0; p[1] = 0; p[2] = 0; p[3] = 0;
 		}
-		// 黄色から赤に変更
+		// グラデーションで変化
 		unsafe private static void ResignBySlope(double v, byte* p)
 		{
-			p[0] = 0;
-			p[1] = (byte)(255 - Slope(v, 0, 1, 0, 255));
-			p[2] = 255;
+			p[0] = (byte)(255 - Slope(v, 0, 1, 0, 255));
+			p[1] = 128;
+			p[2] = Slope(v, 0, 1, 64, 255);
 			p[3] = Slope(v, 0, 0.1, 0, 255);
 		}
 		private static byte Slope(double value, double inlow, double inhigh, byte outlow, byte outhigh)
